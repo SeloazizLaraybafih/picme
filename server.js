@@ -15,7 +15,19 @@ app.get('/', (req, res) => {
 app.get('/photo', async (req, res) => {
   try {
     const { id, full_text, tags } = req.query // Get query parameters
-    let query = 'SELECT * FROM photo WHERE 1=1' // Base query
+    let query = ` SELECT 
+        photo.id, 
+        photo.event_id, 
+        events.name AS event_name, 
+        photo.tags, 
+        photo.full_text, 
+        photo.preview_path, 
+        photo.thumbnail_path
+      FROM 
+        photo
+      JOIN 
+        events ON photo.event_id = events.id
+      WHERE 1=1` // Base query
     let queryParams = []
 
     if (id) {
@@ -39,6 +51,65 @@ app.get('/photo', async (req, res) => {
       return res.status(404).json({ error: 'Photo not found' })
     }
 
+    console.log(rows)
+    res.json(rows)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/tags', async (req, res) => {
+  try {
+    const { id, name } = req.query // Get query parameters
+    let query = 'SELECT * FROM tags WHERE 1=1' // Base query
+    let queryParams = []
+
+    if (id) {
+      query += ' AND id = ?'
+      queryParams.push(id)
+    }
+
+    if (name) {
+      query += ' AND name LIKE ?'
+      queryParams.push(`%${name}%`)
+    }
+
+    const [rows] = await pool.query(query, queryParams)
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Photo not found' })
+    }
+
+    console.log(rows)
+    res.json(rows)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/events', async (req, res) => {
+  try {
+    const { id, name } = req.query // Get query parameters
+    let query = 'SELECT * FROM events WHERE 1=1' // Base query
+    let queryParams = []
+
+    if (id) {
+      query += ' AND id = ?'
+      queryParams.push(id)
+    }
+
+    if (name) {
+      query += ' AND name LIKE ?'
+      queryParams.push(`%${name}%`)
+    }
+
+    const [rows] = await pool.query(query, queryParams)
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Photo not found' })
+    }
+
+    console.log(rows)
     res.json(rows)
   } catch (err) {
     res.status(500).json({ error: err.message })
